@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-Federated learning on the Crop Recommendation dataset (pure numpy).
+Federated learning for yield prediction (regression, pure numpy).
 
-Model : MLP 7 -> H -> 22 with an optional batch-normalisation layer after the
-        hidden linear layer (needed by FedBN).
-Algos : Local-only, Centralised, FedAvg, FedProx, SCAFFOLD, FedBN,
-        and DP-FedAvg with record-level DP-SGD at each farm (RDP accountant).
-Split : Dirichlet label partition over K farms (Li et al., ICDE 2022);
-        each farm keeps 25 % of its records as local test data, so the union of
-        local test sets is the global test set.
+Data  : FAO crop yields (Kaggle "Crop Yield Prediction Dataset"); duplicated
+        country-crop-year rows are averaged, countries with fewer than 40
+        records are dropped, and the target is the standardized log-yield.
+Model : MLP with one hidden layer, optional batch or layer normalization.
+Algos : Local-only, Centralized, FedAvg, FedProx, SCAFFOLD, FedBN, and FedAvg
+        followed by local fine-tuning.
+Split : natural partition, one client per country. 20 % of the countries are
+        held out entirely (global test: unseen countries); the other countries
+        train on 1990-2009 and are tested locally on 2010-2013.
+Eval  : R2 on unseen countries (g_acc), pooled R2 on future years (l_acc) and
+        per-country RMSE on the standardized log-yield (farm).
 """
 import os
 import numpy as np

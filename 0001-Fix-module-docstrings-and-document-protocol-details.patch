@@ -1,0 +1,94 @@
+From d60497c94ce3bd7bff105fb38d2705ca181309ac Mon Sep 17 00:00:00 2001
+From: Souhayla Kasmi <kasmi.souhayla.d25@ump.ac.ma>
+Date: Fri, 23 Oct 2026 20:02:28 +0000
+Subject: [PATCH] Fix module docstrings and document protocol details
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01TBZbe1K5Cd3onsXujZBzP2
+---
+ README.md      |  2 +-
+ data/README.md |  2 +-
+ src/fl.py      |  9 ++++++---
+ src/fl_reg.py  | 22 +++++++++++++---------
+ 4 files changed, 21 insertions(+), 14 deletions(-)
+
+diff --git a/README.md b/README.md
+index 1394d6b..225b9f8 100644
+--- a/README.md
++++ b/README.md
+@@ -43,7 +43,7 @@ For a quick test, set `SEEDS=1` (e.g. `SEEDS=1 python experiments/run_main.py A`
+ 
+ ## Protocol
+ 
+-Ten seeds per configuration (each seed redraws the partition and the initialization); hyper-parameters were tuned on two separate seeds; differences are tested with the two-sided Wilcoxon signed-rank test paired by seed, with Holm correction.
++Ten seeds per configuration (each seed redraws the partition and the initialization); hyper-parameters (learning rates, fine-tuning epochs) were tuned on two separate seeds (100 and 101), and the tuning scripts are not included in this repository; the 50-farm experiment uses 400 rounds and 10 % participation; Dirichlet partitions are redrawn until every farm holds at least 20 records (5 with 50 farms); standard deviations in the result tables are population standard deviations over the ten seeds; differences are tested with the two-sided Wilcoxon signed-rank test paired by seed, with Holm correction.
+ 
+ ## Citation
+ 
+diff --git a/data/README.md b/data/README.md
+index b107086..a033886 100644
+--- a/data/README.md
++++ b/data/README.md
+@@ -5,6 +5,6 @@ The datasets are public but are not redistributed here. Download them and place
+ | File | Source |
+ |---|---|
+ | `Crop_recommendation.csv` | Ingle, A.: Crop Recommendation Dataset, Kaggle — https://www.kaggle.com/datasets/atharvaingle/crop-recommendation-dataset |
+-| `yield_df.csv` | Patel, R.: Crop Yield Prediction Dataset (FAO and World Bank data), Kaggle — https://www.kaggle.com/datasets/patelris/crop-yield-prediction-dataset |
++| `yield_df.csv` | Patel, R.: Crop Yield Prediction Dataset: Predicting Crop Yield of 10 Most Consumed Crops in World, Kaggle — https://www.kaggle.com/datasets/patelris/crop-yield-prediction-dataset |
+ 
+ Expected shapes: `Crop_recommendation.csv` has 2,200 rows and 8 columns; `yield_df.csv` has 28,242 rows (13,130 after averaging duplicated country–crop–year rows).
+diff --git a/src/fl.py b/src/fl.py
+index 519a09e..8be6a66 100644
+--- a/src/fl.py
++++ b/src/fl.py
+@@ -6,9 +6,12 @@ Model : MLP 7 -> H -> 22 with an optional batch-normalisation layer after the
+         hidden linear layer (needed by FedBN).
+ Algos : Local-only, Centralised, FedAvg, FedProx, SCAFFOLD, FedBN,
+         and DP-FedAvg with record-level DP-SGD at each farm (RDP accountant).
+-Split : Dirichlet label partition over K farms (Li et al., ICDE 2022);
+-        each farm keeps 25 % of its records as local test data, so the union of
+-        local test sets is the global test set.
++Split : a stratified 25 % global test set (balanced over the 22 crops) is set
++        aside first; the remaining records are split over K farms with the
++        Dirichlet label partition (Li et al., ICDE 2022), redrawn until every
++        farm has at least `min_size` records; each farm then keeps 20 % of its
++        records as a local test set. Optional per-farm sensor shift (gain and
++        offset per standardized attribute).
+ """
+ import os
+ import numpy as np
+diff --git a/src/fl_reg.py b/src/fl_reg.py
+index 67bca65..3fae23c 100644
+--- a/src/fl_reg.py
++++ b/src/fl_reg.py
+@@ -1,14 +1,18 @@
+ # -*- coding: utf-8 -*-
+ """
+-Federated learning on the Crop Recommendation dataset (pure numpy).
+-
+-Model : MLP 7 -> H -> 22 with an optional batch-normalisation layer after the
+-        hidden linear layer (needed by FedBN).
+-Algos : Local-only, Centralised, FedAvg, FedProx, SCAFFOLD, FedBN,
+-        and DP-FedAvg with record-level DP-SGD at each farm (RDP accountant).
+-Split : Dirichlet label partition over K farms (Li et al., ICDE 2022);
+-        each farm keeps 25 % of its records as local test data, so the union of
+-        local test sets is the global test set.
++Federated learning for yield prediction (regression, pure numpy).
++
++Data  : FAO crop yields (Kaggle "Crop Yield Prediction Dataset"); duplicated
++        country-crop-year rows are averaged, countries with fewer than 40
++        records are dropped, and the target is the standardized log-yield.
++Model : MLP with one hidden layer, optional batch or layer normalization.
++Algos : Local-only, Centralized, FedAvg, FedProx, SCAFFOLD, FedBN, and FedAvg
++        followed by local fine-tuning.
++Split : natural partition, one client per country. 20 % of the countries are
++        held out entirely (global test: unseen countries); the other countries
++        train on 1990-2009 and are tested locally on 2010-2013.
++Eval  : R2 on unseen countries (g_acc), pooled R2 on future years (l_acc) and
++        per-country RMSE on the standardized log-yield (farm).
+ """
+ import os
+ import numpy as np
+-- 
+2.43.0
+

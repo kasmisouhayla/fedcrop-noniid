@@ -1,4 +1,4 @@
-# When Farms Grow Different Crops — code and results
+# When Farms Grow Different Crops : code and results
 
 Code and results for the paper *“When Farms Grow Different Crops: An Empirical Study of Aggregation, Normalization and Privacy in Federated Crop Recommendation”* (S. Kasmi, S. Chadli, M. Saber), submitted to AISA'27.
 

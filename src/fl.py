@@ -6,9 +6,12 @@ Model : MLP 7 -> H -> 22 with an optional batch-normalisation layer after the
         hidden linear layer (needed by FedBN).
 Algos : Local-only, Centralised, FedAvg, FedProx, SCAFFOLD, FedBN,
         and DP-FedAvg with record-level DP-SGD at each farm (RDP accountant).
-Split : Dirichlet label partition over K farms (Li et al., ICDE 2022);
-        each farm keeps 25 % of its records as local test data, so the union of
-        local test sets is the global test set.
+Split : a stratified 25 % global test set (balanced over the 22 crops) is set
+        aside first; the remaining records are split over K farms with the
+        Dirichlet label partition (Li et al., ICDE 2022), redrawn until every
+        farm has at least `min_size` records; each farm then keeps 20 % of its
+        records as a local test set. Optional per-farm sensor shift (gain and
+        offset per standardized attribute)
 """
 import os
 import numpy as np

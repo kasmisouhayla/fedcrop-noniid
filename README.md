@@ -43,7 +43,7 @@ For a quick test, set `SEEDS=1` (e.g. `SEEDS=1 python experiments/run_main.py A`
 
 ## Protocol
 
-Ten seeds per configuration (each seed redraws the partition and the initialization); hyper-parameters were tuned on two separate seeds; differences are tested with the two-sided Wilcoxon signed-rank test paired by seed, with Holm correction.
+Ten seeds per configuration (each seed redraws the partition and the initialization); hyper-parameters (learning rates, fine-tuning epochs) were tuned on two separate seeds (100 and 101), and the tuning scripts are not included in this repository; the 50-farm experiment uses 400 rounds and 10 % participation; Dirichlet partitions are redrawn until every farm holds at least 20 records (5 with 50 farms); standard deviations in the result tables are population standard deviations over the ten seeds; differences are tested with the two-sided Wilcoxon signed-rank test paired by seed, with Holm correction.
 
 ## Citation
 

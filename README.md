@@ -36,6 +36,11 @@ pip install -r requirements.txt
 python experiments/run_main.py A & python experiments/run_main.py B
 python experiments/run_extra.py A & python experiments/run_extra.py B
 wait
+# combined configuration, held-out validation and heterogeneity indicator
+python experiments/run_recipe.py crop & python experiments/run_recipe.py yield
+python experiments/run_heldout.py A & python experiments/run_heldout.py B
+wait
+python analysis/heterogeneity.py
 # 3. merge, print tables and statistics, redraw figures
 python analysis/merge_results.py
 python analysis/summary.py

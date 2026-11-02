@@ -19,6 +19,9 @@ experiments/run_extra.py Yield prediction, fine-tuning baseline, DP with SCAFFOL
 analysis/merge_results.py Merges the raw outputs
 analysis/summary.py     Prints the paper's tables and statistical tests
 analysis/make_figures.py Regenerates the figures
+experiments/run_recipe.py SCAFFOLD + local fine-tuning (combined configuration), crop and yield tasks
+experiments/run_heldout.py Validation of the configuration and of the indicator H on ten held-out seeds (10-19)
+analysis/heterogeneity.py Pre-training heterogeneity indicator H (crop-mix Jensen-Shannon divergence)
 results/                Result files used in the paper
 figures/                Figures of the paper (PDF)
 data/                   Download instructions for the two public datasets

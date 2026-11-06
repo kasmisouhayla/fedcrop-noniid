@@ -27,12 +27,31 @@ print("\nTable 2 - yield prediction (R2 on unseen countries G / future years L)"
 for m in ["local", "fedavg", "scaffold", "fedavg_bn", "fedbn", "ft", "central"]:
     print(f"  {m:<10} G {np.mean([r['g_acc'] for r in E7[m]]):6.2f}  L {np.mean([r['l_acc'] for r in E7[m]]):5.2f}")
 
-print("\nWilcoxon signed-rank tests (paired by seed)")
+print("\nWilcoxon signed-rank tests (two-sided, paired by seed), Holm-corrected")
 w = lambda x, y: stats.wilcoxon(x, y).pvalue
 g = lambda d, k: [r["g_acc"] for r in d[k]]
-print("  SCAFFOLD vs FedAvg, alpha=0.05:", w(g(E1, "0.05|scaffold"), g(E1, "0.05|fedavg")))
-print("  FedAvg vs FedAvg+BN, alpha=0.1:", w(g(E1, "0.1|fedavg"), g(E1, "0.1|fedavg_bn")))
-print("  FedBN vs FedAvg, sensor shift:", w(g(E4, "100|fedbn"), g(E4, "100|fedavg")))
-print("  SCAFFOLD vs FedAvg, K=50:", w(g(E5, "0.05|scaffold"), g(E5, "0.05|fedavg")))
-print("  Yield: FedAvg vs FedAvg+BN:", w(g(E7, "fedavg"), g(E7, "fedavg_bn")))
-print("  DP (z=2, alpha=1): SCAFFOLD vs FedAvg:", w(g(E9, "1.0|2.0"), g(E3, "1.0|2.0")))
+tests = [
+    ("SCAFFOLD vs FedAvg, alpha=0.05", w(g(E1, "0.05|scaffold"), g(E1, "0.05|fedavg"))),
+    ("FedAvg vs FedAvg+BN, alpha=0.1", w(g(E1, "0.1|fedavg"), g(E1, "0.1|fedavg_bn"))),
+    ("FedBN vs FedAvg, sensor shift", w(g(E4, "100|fedbn"), g(E4, "100|fedavg"))),
+    ("SCAFFOLD vs FedAvg, K=50", w(g(E5, "0.05|scaffold"), g(E5, "0.05|fedavg"))),
+    ("Yield: FedAvg vs FedAvg+BN", w(g(E7, "fedavg"), g(E7, "fedavg_bn"))),
+    ("DP (z=2, alpha=1): SCAFFOLD vs FedAvg", w(g(E9, "1.0|2.0"), g(E3, "1.0|2.0"))),
+]
+
+
+def holm(pvals):
+    """Holm-Bonferroni step-down adjusted p-values (same order as the input)."""
+    m = len(pvals)
+    order = np.argsort(pvals)
+    adj = np.empty(m)
+    running = 0.0
+    for rank, idx in enumerate(order):
+        running = max(running, (m - rank) * pvals[idx])
+        adj[idx] = min(1.0, running)
+    return adj
+
+
+p_adj = holm(np.array([p for _, p in tests]))
+for (name, p), pa in zip(tests, p_adj):
+    print(f"  {name:40s} raw p = {p:.4f}   Holm p = {pa:.4f}   {'significant' if pa < 0.05 else 'n.s.'} at 5%")

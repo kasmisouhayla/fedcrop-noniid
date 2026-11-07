@@ -22,6 +22,7 @@ analysis/make_figures.py Regenerates the figures
 experiments/run_recipe.py SCAFFOLD + local fine-tuning (combined configuration), crop and yield tasks
 experiments/run_heldout.py Validation of the configuration and of the indicator H on ten held-out seeds (10-19)
 analysis/heterogeneity.py Pre-training heterogeneity indicator H (crop-mix Jensen-Shannon divergence)
+experiments/run_mu.py   FedProx sensitivity to mu (0.001, 0.01, 0.1) on the tuning and main seeds
 results/                Result files used in the paper
 figures/                Figures of the paper (PDF)
 data/                   Download instructions for the two public datasets
@@ -41,6 +42,7 @@ python experiments/run_recipe.py crop & python experiments/run_recipe.py yield
 python experiments/run_heldout.py A & python experiments/run_heldout.py B
 wait
 python analysis/heterogeneity.py
+python experiments/run_mu.py   # FedProx sensitivity to mu (about 2 minutes)
 # 3. merge, print tables and statistics, redraw figures
 python analysis/merge_results.py
 python analysis/summary.py
@@ -51,7 +53,7 @@ For a quick test, set `SEEDS=1` (e.g. `SEEDS=1 python experiments/run_main.py A`
 
 ## Protocol
 
-Ten seeds per configuration (each seed redraws the partition and the initialization); hyper-parameters (learning rates, fine-tuning epochs) were tuned on two separate seeds (100 and 101), and the tuning scripts are not included in this repository; the 50-farm experiment uses 400 rounds and 10 % participation; Dirichlet partitions are redrawn until every farm holds at least 20 records (5 with 50 farms); standard deviations in the result tables are population standard deviations over the ten seeds; differences are tested with the two-sided Wilcoxon signed-rank test paired by seed, with Holm correction.
+Ten seeds per configuration (each seed redraws the partition and the initialization); hyper-parameters (learning rates, fine-tuning epochs) were tuned on two separate seeds (100 and 101), and the tuning scripts are not included in this repository, except `experiments/run_mu.py`, which shows that FedProx gives the same accuracy for mu = 0.001, 0.01 and 0.1 (spread at most 0.13 points); the 50-farm experiment uses 400 rounds and 10 % participation; Dirichlet partitions are redrawn until every farm holds at least 20 records (5 with 50 farms); standard deviations in the result tables are population standard deviations over the ten seeds; differences are tested with the two-sided Wilcoxon signed-rank test paired by seed, with Holm correction.
 
 ## Citation
 

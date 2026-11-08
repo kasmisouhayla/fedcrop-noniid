@@ -27,13 +27,20 @@ print("\nTable 2 - yield prediction (R2 on unseen countries G / future years L)"
 for m in ["local", "fedavg", "scaffold", "fedavg_bn", "fedbn", "ft", "central"]:
     print(f"  {m:<10} G {np.mean([r['g_acc'] for r in E7[m]]):6.2f}  L {np.mean([r['l_acc'] for r in E7[m]]):5.2f}")
 
+print("\nSensor shift (Sect. 4.5): G / L / worst farm, %")
+for a in ["100", "0.1"]:
+    for m in ["local", "fedavg", "scaffold", "fedbn", "central"]:
+        rs = E4[f"{a}|{m}"]
+        print(f"  alpha={a:<4} {m:<9} G {100*np.mean([r['g_acc'] for r in rs]):5.1f}"
+              f"  L {100*np.mean([r['l_acc'] for r in rs]):5.1f}  worst {100*np.mean([min(r['farm']) for r in rs]):5.1f}")
+
 print("\nWilcoxon signed-rank tests (two-sided, paired by seed), Holm-corrected")
 w = lambda x, y: stats.wilcoxon(x, y).pvalue
 g = lambda d, k: [r["g_acc"] for r in d[k]]
 r95 = lambda d, k: [hit(r["curve"], .95) for r in d[k]]
 l = lambda d, k: [r["l_acc"] for r in d[k]]
 RC = L("raw_recipe_crop.json")["crop"]
-# Holm family: exactly the twelve comparisons reported with a p-value in the paper.
+# Holm family: exactly the thirteen comparisons reported with a p-value in the paper.
 tests = [
     ("SCAFFOLD vs FedAvg, G, alpha=0.05", w(g(E1, "0.05|scaffold"), g(E1, "0.05|fedavg"))),
     ("SCAFFOLD vs FedAvg, R95, alpha=0.05", w(r95(E1, "0.05|scaffold"), r95(E1, "0.05|fedavg"))),
@@ -45,6 +52,7 @@ tests = [
     ("Yield: FedAvg+FT vs FedAvg, L", w(l(E7, "ft"), l(E7, "fedavg"))),
     ("Yield: SCAFFOLD vs FedAvg, G", w(g(E7, "scaffold"), g(E7, "fedavg"))),
     ("FedBN vs FedAvg, G, sensor shift", w(g(E4, "100|fedbn"), g(E4, "100|fedavg"))),
+    ("FedBN vs SCAFFOLD, L, sensor shift, alpha=0.1", w(l(E4, "0.1|fedbn"), l(E4, "0.1|scaffold"))),
     ("SCAFFOLD vs FedAvg, G, K=50", w(g(E5, "0.05|scaffold"), g(E5, "0.05|fedavg"))),
     ("DP (z=2, alpha=1): SCAFFOLD vs FedAvg, G", w(g(E9, "1.0|2.0"), g(E3, "1.0|2.0"))),
 ]
